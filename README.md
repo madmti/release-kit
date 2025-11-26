@@ -1,0 +1,1 @@
+# Bash github release kit
