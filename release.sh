@@ -37,6 +37,10 @@ NEW_TAG="v$NEXT_VERSION"
 log_info "Bump type: $BUMP_TYPE"
 log_info "Changing version from $LAST_TAG to $NEW_TAG"
 
+RELEASE_NOTES=$(get_notes "$COMMITS")
+# Release notes are not written to a file yet
+# write_changelog "$NEW_TAG" "$RELEASE_NOTES"
+
 setup_git_user
 create_release_commit "$NEW_TAG"
 
@@ -47,6 +51,6 @@ if check_github_active; then
 
     log_info "Creating GitHub release..."
     check_gh_cli
-    create_gh_release "$NEW_TAG" "$COMMITS"
+    create_gh_release "$NEW_TAG" "$RELEASE_NOTES"
     log_success "GitHub release $NEW_TAG created successfully!"
 fi

@@ -7,15 +7,47 @@
 get_bump_type() {
     local commits="$1"          # Multiline string of commit messages
 
-    if grep -qE '^(BREAKING CHANGE|feat!|fix!)(\(.+\))?:' <<< "$commits"; then
+    if echo "$commits" | grep -qE 'BREAKING CHANGE|^[a-z]+(\(.+\))?!:'; then
         echo "major"
-    elif grep -qE '^(feat|feature)(\(.+\))?:' <<< "$commits"; then
-        echo "minor"
-    elif  grep -qE '^(fix|bugfix|hotfix)(\(.+\))?:' <<< "$commits"; then
-        echo "patch"
-    else
-        echo "none"
+        return 0
     fi
+
+    local types_config=$(get_commit_types)
+
+    check_bump_level() {
+        local level="$1"
+
+        local types_to_check=$(echo "$types_config" | jq -r --arg lvl "$level" '.[] | select(.bump == $lvl) | .type')
+
+        if [ -z "$types_to_check" ]; then
+            return 1
+        fi
+
+        local regex_pattern="^($(echo "$types_to_check" | tr '\n' '|' | sed 's/|$//'))(\(.+\))?:"
+
+        if echo "$commits" | grep -qE "$regex_pattern"; then
+            return 0
+        else
+            return 1
+        fi
+    }
+
+    if check_bump_level "major"; then
+        echo "major"
+        return 0
+    fi
+
+    if check_bump_level "minor"; then
+        echo "minor"
+        return 0
+    fi
+
+    if check_bump_level "patch"; then
+        echo "patch"
+        return 0
+    fi
+
+    echo "none"
 }
 
 calculate_next_version() {
