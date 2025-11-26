@@ -1,5 +1,7 @@
 # Bash release kit for Git
 
+This is a pure Bash release kit for Git repositories, designed to automate the process of creating releases. It includes a script that can be integrated into CI/CD pipelines, such as GitHub Actions.
+
 ## Example workflow for GitHub Actions
 Create the `.github/` folder in your repository if it doesn't exist yet.
 ```sh
@@ -34,7 +36,7 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
-      - name: Ejecutar Release Script
+      - name: Exec Release Script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is needed to create releases
         run: ./.github/release-kit/release.sh
