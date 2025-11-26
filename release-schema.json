@@ -4,6 +4,10 @@
     "description": "Configuration file for the Bash Release Kit automation tool.",
     "type": "object",
     "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "Link to the JSON Schema for validation and autocompletion."
+        },
         "github": {
             "type": "object",
             "description": "GitHub related configuration settings.",
@@ -14,6 +18,35 @@
                 }
             },
             "required": ["active"]
+        },
+        "commitTypes": {
+            "type": "array",
+            "description": "Define custom behavior for commit types (bumping logic and changelog sections).",
+            "items": {
+                "type": "object",
+                "required": ["type"],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "description": "The commit prefix to match (e.g., 'feat', 'fix', 'perf')."
+                    },
+                    "section": {
+                        "type": "string",
+                        "description": "The title to display in the Changelog for this type. If omitted, the type group might be hidden or use a default."
+                    },
+                    "bump": {
+                        "type": "string",
+                        "description": "The Semantic Versioning impact of this commit type.",
+                        "enum": ["major", "minor", "patch", "none"],
+                        "default": "none"
+                    },
+                    "hidden": {
+                        "type": "boolean",
+                        "description": "If true, commits of this type will be excluded from the Changelog.",
+                        "default": false
+                    }
+                }
+            }
         }
     },
     "required": []
