@@ -1,0 +1,21 @@
+name: "Bash Release Kit"
+description: "Automated semantic release using pure Bash"
+inputs:
+  github_token:
+    description: "GitHub Token for creating releases"
+    required: true
+  config_file:
+    description: "Path to configuration file"
+    required: false
+    default: "release-config.json"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run Release Script
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        CONFIG_FILE_PATH: ${{ inputs.config_file }}
+      run: |
+        ${{ github.action_path }}/release.sh
