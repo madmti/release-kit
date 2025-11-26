@@ -1,0 +1,20 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Bash Release Kit Configuration",
+    "description": "Configuration file for the Bash Release Kit automation tool.",
+    "type": "object",
+    "properties": {
+        "github": {
+            "type": "object",
+            "description": "GitHub related configuration settings.",
+            "properties": {
+                "active": {
+                    "type": "boolean",
+                    "description": "Indicates whether GitHub integration is active."
+                }
+            },
+            "required": ["active"]
+        }
+    },
+    "required": []
+}
