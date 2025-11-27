@@ -16,6 +16,7 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
+        GH_TOKEN: ${{ inputs.github_token }}
         CONFIG_FILE_PATH: ${{ inputs.config_file }}
       run: |
         ${{ github.action_path }}/release.sh
