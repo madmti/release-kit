@@ -176,7 +176,7 @@ Customize how different commit types affect the versioning and the Changelog sec
   * **bump**: `major`, `minor`, `patch`, or `none`.
   * **hidden**: If `true`, these commits won't appear in the Changelog.
 
-### 4\. Floating Tags (Maintenance)
+### 4\. Floating Tags
 
 Keep your consumers up-to-date automatically by maintaining floating tags that always point to the latest stable releases.
 
