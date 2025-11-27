@@ -48,6 +48,34 @@
                 }
             }
         },
+        "targets": {
+            "type": "array",
+            "description": "List of files to update with the new version.",
+            "items": {
+                "type": "object",
+                "required": ["path", "type"],
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "Path to the file relative to the project root."
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "npm",
+                            "json",
+                            "text",
+                            "python",
+                            "custom-regex"
+                        ]
+                    },
+                    "pattern": {
+                        "type": "string",
+                        "description": "Regex pattern for 'custom-regex' type. Use '%VERSION%' as placeholder for the new version value."
+                    }
+                }
+            }
+        },
         "changelog": {
             "type": "object",
             "description": "Changelog generation settings.",

@@ -47,6 +47,8 @@ else
     log_info "Changelog generation is disabled."
 fi
 
+run_updaters "$NEW_TAG"
+
 setup_git_user
 create_release_commit "$NEW_TAG"
 
