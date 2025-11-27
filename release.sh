@@ -96,7 +96,7 @@ fi
 run_updaters "$NEW_TAG"
 
 # Step 9: Create release commit and tag
-setup_git_user
+setup_git_user "GitHub Actions" "actions@github.com"
 create_release_commit "$NEW_TAG"
 
 log_success "Release $NEW_TAG created successfully!"
