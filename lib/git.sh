@@ -188,7 +188,7 @@ create_release_commit() {
 #   After creating release v1.2.3, call this to update 'latest' → v1.2.3
 #######################################
 update_tag_latest() {
-    log_info "🔄 Updating 'latest' tag to current HEAD..."
+    log_info "Updating 'latest' tag to current HEAD..."
     git tag -f latest
     git push origin latest --force
 }
@@ -227,7 +227,7 @@ update_tag_major() {
         return 0
     fi
 
-    log_info "🔄 Updating major version tag '$major_tag' to current HEAD..."
+    log_info "Updating major version tag '$major_tag' to current HEAD..."
     git tag -f "$major_tag"
     git push origin "$major_tag" --force
 }
