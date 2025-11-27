@@ -13,6 +13,8 @@
 #   - get_commit_types()      Get commit type definitions (custom or default)
 #   - check_changelog_enable() Check if changelog generation is enabled
 #   - get_changelog_output()  Get configured changelog output path
+#   - check_update_latest()   Check if 'latest' floating tag should be updated
+#   - check_update_majors()   Check if major version floating tags should be updated
 #
 # Global Variables:
 #   CONFIG_CONTENT - Holds the parsed configuration content (populated by setup_config)
@@ -195,5 +197,65 @@ get_changelog_output() {
         echo "CHANGELOG.md"
     else
         echo "$output_path"
+    fi
+}
+
+#######################################
+# Check if 'latest' floating tag should be updated
+# Determines whether the 'latest' tag should be moved to point to new releases.
+# This allows users to reference the most recent stable version using 'latest'.
+# Defaults to disabled for safety (force push operations).
+# Globals:
+#   CONFIG_CONTENT (via get_config_value)
+# Arguments:
+#   None
+# Outputs:
+#   None
+# Returns:
+#   0 if latest tag updates are enabled, 1 if disabled (default)
+# Configuration:
+#   "floatingTags.latest": true/false
+# Security Note:
+#   When enabled, performs force push operations that overwrite remote tag history
+#######################################
+check_update_latest() {
+    local enabled=$(get_config_value "floatingTags.latest")
+
+    if [[ "$enabled" == "true" ]]; then
+        return 0 # True
+    else
+        return 1 # False (Default)
+    fi
+}
+
+#######################################
+# Check if major version floating tags should be updated
+# Determines whether major version tags (v1, v2, etc.) should be moved to point
+# to new releases within the same major version. Enables GitHub Actions usage
+# patterns like 'uses: owner/repo@v1' which automatically get latest v1.x.x.
+# Defaults to disabled for safety (force push operations).
+# Globals:
+#   CONFIG_CONTENT (via get_config_value)
+# Arguments:
+#   None
+# Outputs:
+#   None
+# Returns:
+#   0 if major version tag updates are enabled, 1 if disabled (default)
+# Configuration:
+#   "floatingTags.majors": true/false
+# Security Note:
+#   When enabled, performs force push operations that overwrite remote tag history
+# Examples:
+#   Release v1.2.3 → moves 'v1' tag to point to v1.2.3 commit
+#   Release v2.0.1 → moves 'v2' tag to point to v2.0.1 commit
+#######################################
+check_update_majors() {
+    local enabled=$(get_config_value "floatingTags.majors")
+
+    if [[ "$enabled" == "true" ]]; then
+        return 0 # True
+    else
+        return 1 # False (Default)
     fi
 }

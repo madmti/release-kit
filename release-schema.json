@@ -92,6 +92,23 @@
                 }
             },
             "required": ["enable"]
+        },
+        "floatingTags": {
+            "type": "object",
+            "description": "Configure automatic updates for floating tags (latest, v1, etc).",
+            "properties": {
+                "latest": {
+                    "type": "boolean",
+                    "description": "If true, updates the 'latest' tag to point to the new release.",
+                    "default": false
+                },
+                "majors": {
+                    "type": "boolean",
+                    "description": "If true, updates the major version tag (e.g., v1) to point to the new release.",
+                    "default": false
+                }
+            },
+            "required": []
         }
     },
     "required": []

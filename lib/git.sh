@@ -11,11 +11,13 @@
 #     - get_last_tag()       Get the most recent Git tag or default
 #     - get_commits_since()  Get commit messages since specified tag
 #     - get_current_hash()   Get current commit hash (short format)
-#   
+#
 #   Write Operations:
 #     - setup_git_user()        Configure Git user for commits
 #     - has_staged_changes()    Check if there are staged changes
 #     - create_release_commit() Create release commit and tag
+#     - update_tag_latest()     Update floating 'latest' tag
+#     - update_tag_major()      Update floating major version tag
 #
 # Dependencies:
 #   - git command
@@ -39,7 +41,9 @@
 #   0 always (uses fallback for error cases)
 #######################################
 get_last_tag() {
-    git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0"
+    # CRITICAL: Uses --match "v*.*.*" to ignore floating tags like 'latest', 'v1', 'v2'
+    # This ensures version calculation is based on precise semantic version tags only
+    git describe --tags --match "v*.*.*" --abbrev=0 2>/dev/null || echo "v0.0.0"
 }
 
 #######################################
@@ -157,4 +161,73 @@ create_release_commit() {
 
     git tag "$version_tag"
     git push origin HEAD --tags
+}
+
+# =========================================
+#           FLOATING TAGS FUNCTIONS
+# =========================================
+
+#######################################
+# Update the 'latest' floating tag to point to current HEAD
+# Moves the 'latest' tag to the current commit and force pushes it to remote.
+# This allows users to always reference the most recent stable release using 'latest'.
+# SECURITY WARNING: Uses force push which overwrites remote tag history.
+# Globals:
+#   None
+# Arguments:
+#   None (operates on current HEAD)
+# Outputs:
+#   Progress information via log_info
+#   Git command output to stdout/stderr
+# Returns:
+#   0 on success, non-zero on git operation failure
+# Side Effects:
+#   - Forces 'latest' tag to current HEAD
+#   - Force pushes tag to origin (overwrites remote history)
+# Usage Example:
+#   After creating release v1.2.3, call this to update 'latest' → v1.2.3
+#######################################
+update_tag_latest() {
+    log_info "Updating 'latest' tag to current HEAD..."
+    git tag -f latest
+    git push origin latest --force
+}
+
+#######################################
+# Update major version floating tag to point to current HEAD
+# Extracts the major version from a full semantic version tag and updates
+# the corresponding floating major tag (e.g., v1.2.3 → updates 'v1' tag).
+# SECURITY WARNING: Uses force push which overwrites remote tag history.
+# Globals:
+#   None
+# Arguments:
+#   $1: full_tag - Complete semantic version tag (e.g., "v1.2.3")
+# Outputs:
+#   Progress information via log_info
+#   Git command output to stdout/stderr (if update needed)
+# Returns:
+#   0 always (early return if no major version to extract)
+# Side Effects:
+#   - Forces major version tag to current HEAD (e.g., 'v1')
+#   - Force pushes tag to origin (overwrites remote history)
+# Examples:
+#   update_tag_major "v1.2.3"  # Updates 'v1' tag
+#   update_tag_major "v2.0.1"  # Updates 'v2' tag
+#   update_tag_major "v1"      # No-op (already major version)
+#######################################
+update_tag_major() {
+    local full_tag="$1"
+
+    # Extract major version (everything before first dot)
+    local major_tag=$(echo "$full_tag" | cut -d. -f1)
+
+    # Skip if input is already a major version tag (no dots)
+    if [[ "$major_tag" == "$full_tag" ]]; then
+        log_debug "Tag '$full_tag' is already a major version, skipping update"
+        return 0
+    fi
+
+    log_info "Updating major version tag '$major_tag' to current HEAD..."
+    git tag -f "$major_tag"
+    git push origin "$major_tag" --force
 }

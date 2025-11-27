@@ -44,6 +44,42 @@ That's it\! On every push to the `main` branch, the action will analyze commit m
 
 -----
 
+## Loop Prevention
+
+When using **Personal Access Tokens (PAT)** instead of `secrets.GITHUB_TOKEN`, release commits can trigger new workflow runs, creating infinite loops. The Release Kit includes automatic loop detection, but you can also prevent this at the workflow level for cleaner action logs.
+
+### Built-in Protection
+
+The Release Kit automatically detects and prevents release loops by checking if the last commit is a release commit made by "GitHub Actions". No configuration needed - it works out of the box.
+
+### Workflow-Level Prevention (Recommended for PAT users)
+
+For cleaner logs when using PAT tokens, add this condition to your workflow:
+
+```yaml
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: Production
+    # LOOP PREVENTION: Skip if triggered by release commits
+    if: github.event.head_commit.author.name != 'GitHub Actions'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          fetch-depth: 0
+      
+      - name: Semantic Release
+        uses: madmti/bash-release-kit@main
+        with:
+          github_token: ${{ secrets.PAT_TOKEN }}
+```
+
+**Recommendation**: Use `secrets.GITHUB_TOKEN` when possible as it doesn't trigger workflow runs for its own commits, eliminating the need for loop prevention.
+
+-----
+
 ## Configuration
 
 The release kit uses a configuration file to define version update behavior and other settings. By default, it looks for `release-config.json` in the repository root.
@@ -139,6 +175,30 @@ Customize how different commit types affect the versioning and the Changelog sec
 
   * **bump**: `major`, `minor`, `patch`, or `none`.
   * **hidden**: If `true`, these commits won't appear in the Changelog.
+
+### 4\. Floating Tags
+
+Keep your consumers up-to-date automatically by maintaining floating tags that always point to the latest stable releases.
+
+```json
+"floatingTags": {
+  "latest": true,  // Updates the 'latest' tag to point to this release
+  "majors": true   // Updates 'v1', 'v2', etc. to point to this release
+}
+```
+
+**Use Cases:**
+- **GitHub Actions**: Users can reference `uses: owner/repo@v1` to always get the latest v1.x.x
+- **Docker**: Tags like `latest` automatically point to newest stable version
+- **Documentation**: Simplified references without specifying exact versions
+
+**Security Considerations:**
+- **Force Push Warning**: Enabling this performs `git push --force` on specific tags
+- **Default**: Both options are `false` by default for safety
+- **Recommendation**: Enable only in repositories you control completely
+
+**Technical Note:**
+The tool creates floating tags but ignores them when calculating the next version. It uses `git describe --match "v*.*.*"` to ensure the next version is always calculated based on precise Semantic Version tags (e.g., `v1.2.3`) and never on floating tags (e.g., `v1`).
 
 -----
 
