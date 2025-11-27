@@ -5,7 +5,8 @@
 # Description: Zero-dependency semantic release automation tool for Git repositories.
 #              Analyzes commit history based on conventional commits, creates Git tags,
 #              generates changelogs, publishes GitHub releases, and updates version
-#              numbers in specified files (npm, python, text, etc).
+#              numbers in specified files (npm, python, text, etc). Supports floating
+#              tags and releases for simplified consumption in GitHub Actions.
 #
 # Author: MADMTI
 # Repository: https://github.com/madmti/release-kit
@@ -21,7 +22,7 @@
 # Dependencies:
 #   - jq           (required for JSON configuration parsing)
 #   - git          (required for repository operations)
-#   - gh           (optional, required only for GitHub releases)
+#   - gh           (optional, required only for GitHub releases and floating releases)
 #
 # Exit Codes:
 #   0 - Success
@@ -32,6 +33,8 @@
 #   - Validates all file paths to prevent directory traversal
 #   - Sanitizes regex patterns to prevent code injection
 #   - Uses safe git operations with proper user validation
+#   - Force push operations for floating tags (configurable, disabled by default)
+#   - GitHub release deletion/recreation for floating releases (when enabled)
 
 # ======================================== #
 #                   INIT
@@ -125,5 +128,26 @@ if check_github_enable; then
 
     # Create GitHub release with generated notes
     create_gh_release "$NEW_TAG" "$RELEASE_NOTES"
+
+    # Step 11.1: Create floating GitHub releases (if enabled)
+    # Creates additional GitHub releases for floating tags that enable simplified
+    # consumption patterns in GitHub Actions (e.g., uses: owner/repo@latest)
+    if check_update_latest; then
+        publish_floating_release "latest" "$NEW_TAG" "$RELEASE_NOTES"
+        log_success "GitHub floating release 'latest' updated to $NEW_TAG"
+    fi
+
+    if check_update_majors; then
+        # Extract major version from full tag (e.g., "v1.2.3" → "v1")
+        MAJOR_TAG=$(echo "$NEW_TAG" | cut -d. -f1)
+
+        # Only create major floating release if it's different from the full tag
+        # (prevents unnecessary operation for initial releases like "v1" itself)
+        if [[ "$MAJOR_TAG" != "$NEW_TAG" ]]; then
+            publish_floating_release "$MAJOR_TAG" "$NEW_TAG" "$RELEASE_NOTES"
+            log_success "GitHub floating release '$MAJOR_TAG' updated to $NEW_TAG"
+        fi
+    fi
+
     log_success "GitHub release $NEW_TAG created successfully!"
 fi
