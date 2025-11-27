@@ -18,7 +18,7 @@ get_notes() {
     if [[ -n "$breaking" ]]; then
         echo "### ⚠ BREAKING CHANGES"
         echo ""
-        echo "$breaking" | sed 's/^/- /'
+        echo "$breaking" | sed -E 's/^[a-z]+(\(.*\))?!?:[[:space:]]*//' | sed 's/^/- /'
         echo ""
     fi
 
@@ -38,7 +38,9 @@ get_notes() {
         if [[ -n "$matches" ]]; then
             echo "### $section"
             echo ""
-            echo "$matches" | sed 's/^/- /'
+            echo "$matches" \
+                | sed -E "s/^${type}(\(.*\))?!?:[[:space:]]*//" \
+                | sed 's/^/- /'
             echo ""
         fi
     done
