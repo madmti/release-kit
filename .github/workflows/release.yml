@@ -4,14 +4,31 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:  # Manual trigger
 
 permissions:
   contents: write
 
 jobs:
-  release:
+  shellcheck:
+    name: Code Quality Check
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Run ShellCheck
+        run: |
+          shellcheck -x release.sh
+          find lib -name "*.sh" -exec shellcheck {} \;
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: shellcheck  # Wait for ShellCheck to pass before releasing
+    if: github.event_name == 'push'  # Only create releases on push, not PRs
     steps:
       - name: Checkout
         uses: actions/checkout@v4
