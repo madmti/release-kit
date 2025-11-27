@@ -4,6 +4,7 @@
 #                   INIT
 # ======================================== #
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KIT_VERSION=$(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo "dev")
 source "$SCRIPT_DIR/lib/changelog.sh"
 source "$SCRIPT_DIR/lib/config.sh"
 source "$SCRIPT_DIR/lib/git.sh"
@@ -14,6 +15,7 @@ source "$SCRIPT_DIR/lib/updaters.sh"
 # ======================================== #
 #               Workflow
 # ======================================== #
+log_info "<< Bash Release Kit [$KIT_VERSION] >>"
 setup_config
 
 LAST_TAG=$(get_last_tag)
