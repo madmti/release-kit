@@ -44,6 +44,43 @@ That's it\! On every push to the `main` branch, the action will analyze commit m
 
 -----
 
+## Loop Prevention
+
+When using **Personal Access Tokens (PAT)** instead of `secrets.GITHUB_TOKEN`, release commits can trigger new workflow runs, creating infinite loops. The Release Kit includes automatic loop detection, but you can also prevent this at the workflow level for cleaner action logs.
+
+### Built-in Protection
+
+The Release Kit automatically detects and prevents release loops by checking if the last commit is a release commit made by "GitHub Actions". No configuration needed - it works out of the box.
+
+### Workflow-Level Prevention (Recommended for PAT users)
+
+For cleaner logs when using PAT tokens, add this condition to your workflow:
+
+```yaml
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # LOOP PREVENTION: Skip if triggered by release commits
+    if: github.actor != 'YOUR-PAT-USERNAME'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          fetch-depth: 0
+      
+      - name: Semantic Release
+        uses: madmti/bash-release-kit@main
+        with:
+          github_token: ${{ secrets.PAT_TOKEN }}
+```
+
+Replace `YOUR-PAT-USERNAME` with the username of the account whose PAT you're using.
+
+**Recommendation**: Use `secrets.GITHUB_TOKEN` when possible as it doesn't trigger workflow runs for its own commits, eliminating the need for loop prevention.
+
+-----
+
 ## Configuration
 
 The release kit uses a configuration file to define version update behavior and other settings. By default, it looks for `release-config.json` in the repository root.

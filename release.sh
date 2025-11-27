@@ -35,6 +35,7 @@
 #   - Uses safe git operations with proper user validation
 #   - Force push operations for floating tags (configurable, disabled by default)
 #   - GitHub release deletion/recreation for floating releases (when enabled)
+#   - Loop prevention mechanism to avoid infinite releases with PAT tokens
 
 # ======================================== #
 #                   INIT
@@ -57,6 +58,37 @@ log_info "<< Bash Release Kit [$KIT_VERSION] >>"
 
 # Step 1: Load and validate configuration
 setup_config
+
+# Step 1.1: Loop Prevention Mechanism
+# Prevents infinite release loops when using Personal Access Tokens (PAT) instead of secrets.GITHUB_TOKEN
+# This occurs because PAT commits trigger workflow runs, unlike secrets.GITHUB_TOKEN which doesn't
+#######################################
+# Check if the last commit is a release commit to prevent release loops
+# When using PAT tokens, release commits can trigger new workflow runs, creating
+# an infinite loop. This check prevents duplicate releases by detecting previous
+# release commits made by the automation system.
+# Globals:
+#   None
+# Arguments:
+#   None
+# Outputs:
+#   Warning message and exits if loop detected
+# Returns:
+#   Does not return if loop detected (script exits with code 0)
+# Exit Scenarios:
+#   - Last commit message starts with "chore: release v"
+#   - Last commit author is "GitHub Actions"
+#   - Both conditions must be true to trigger loop prevention
+#######################################
+LAST_MSG=$(git log -1 --pretty=%s)
+LAST_AUTHOR=$(git log -1 --pretty=%an)
+RELEASE_PATTERN="chore: release v"
+
+if [[ $LAST_MSG == $RELEASE_PATTERN* ]] && [[ $LAST_AUTHOR == "GitHub Actions" ]]; then
+    log_warning "Loop Prevention: Last commit is a release commit by GitHub Actions. Exiting to prevent duplicate releases."
+    log_warning "Tip: Use secrets.GITHUB_TOKEN instead of PAT to avoid this check, or implement workflow-level filtering."
+    exit 0
+fi
 
 # Step 2: Determine the last release tag in the repository
 LAST_TAG=$(get_last_tag)
