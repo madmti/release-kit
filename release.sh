@@ -59,7 +59,6 @@ log_success "Release $NEW_TAG created successfully!"
 if check_github_enable; then
     source "$SCRIPT_DIR/lib/platforms/github.sh"
 
-    log_info "Creating GitHub release..."
     check_gh_cli
     create_gh_release "$NEW_TAG" "$RELEASE_NOTES"
     log_success "GitHub release $NEW_TAG created successfully!"
